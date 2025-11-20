@@ -12,19 +12,27 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www/html
 
 # Copy project
 COPY . .
 
-# Install Laravel dependencies
+# Copy env example (jika .env belum ada)
+RUN php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+# Install dependencies
 RUN composer install --optimize-autoloader --no-dev
+
+# Generate key (kalau APP_KEY dari Railway maka tidak overwrite)
+RUN php artisan key:generate --force
 
 # Storage link
 RUN php artisan storage:link || true
 
 # Optimize
-RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
+RUN php artisan config:cache || true
+RUN php artisan route:cache || true
+RUN php artisan view:cache || true
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
+# Start Laravel server
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${PORT}"]
