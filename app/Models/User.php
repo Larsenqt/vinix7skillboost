@@ -55,5 +55,8 @@ class User extends Authenticatable implements FilamentUser
     {
         // Ubah sesuai keinginanmu
         return str_ends_with($this->email, '@gmail.com');
+        return true;
     }
+
+
 }
